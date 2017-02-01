@@ -273,6 +273,17 @@ cmd_panic(int nargs, char **args)
 	return 0;
 }
 
+static
+int
+cmd_debug(int nargs, char **args)
+{
+	(void)nargs;
+	(void)args;
+
+	dbflags = 16;
+	return 0;
+}
+
 /*
  * Command for shutting down.
  */
@@ -436,6 +447,7 @@ static const char *opsmenu[] = {
 	"[pwd]     Print current directory   ",
 	"[sync]    Sync filesystems          ",
 	"[panic]   Intentional panic         ",
+	"[dth]     Enable debugging messages ",
 	"[q]       Quit and shut down        ",
 	NULL
 };
@@ -547,6 +559,7 @@ static struct {
 	{ "sync",	cmd_sync },
 	{ "panic",	cmd_panic },
 	{ "q",		cmd_quit },
+	{ "dth",	cmd_debug },
 	{ "exit",	cmd_quit },
 	{ "halt",	cmd_quit },
 
