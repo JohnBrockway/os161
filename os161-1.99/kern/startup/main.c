@@ -50,7 +50,7 @@
 #include <test.h>
 #include <version.h>
 #include "autoconf.h"  // for pseudoconfig
-
+#include "opt-A2.h"
 
 /*
  * These two pieces of data are maintained by the makefiles and build system.
@@ -135,6 +135,7 @@ boot(void)
 	 */
 	COMPILE_ASSERT(sizeof(userptr_t) == sizeof(char *));
 	COMPILE_ASSERT(sizeof(*(userptr_t)0) == sizeof(char));
+	 
 }
 
 /*
@@ -147,6 +148,7 @@ shutdown(void)
 
 	kprintf("Shutting down.\n");
 	
+
 	vfs_clearbootfs();
 	vfs_clearcurdir();
 	vfs_unmountall();

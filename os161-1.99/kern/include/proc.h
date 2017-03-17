@@ -36,14 +36,21 @@
  * Note: curproc is defined by <current.h>.
  */
 
+#include "opt-A2.h"
 #include <spinlock.h>
 #include <thread.h> /* required for struct threadarray */
+#include <synch.h>
 
 struct addrspace;
 struct vnode;
 #ifdef UW
 struct semaphore;
 #endif // UW
+
+#if OPT_A2
+//int [][] pid_array;
+#endif
+
 
 /*
  * Process structure.
@@ -68,8 +75,18 @@ struct proc {
   struct vnode *console;                /* a vnode for the console device */
 #endif
 
-	/* add more material here as needed */
+	#if OPT_A2
+	int pid;
+	#endif
 };
+
+struct pidEntry {
+	int pid;
+	int code;
+	struct pidEntry *next;
+};
+
+struct pidEntry *pidEntry_create(int pid);
 
 /* This is the process structure for the kernel and for kernel-only threads. */
 extern struct proc *kproc;

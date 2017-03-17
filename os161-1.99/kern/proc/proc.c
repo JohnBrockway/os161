@@ -49,7 +49,9 @@
 #include <vnode.h>
 #include <vfs.h>
 #include <synch.h>
+#include <limits.h>
 #include <kern/fcntl.h>  
+#include "opt-A2.h"
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -62,13 +64,44 @@ struct proc *kproc;
 #ifdef UW
 /* count of the number of processes, excluding kproc */
 static volatile unsigned int proc_count;
+static volatile unsigned int pidCounter;
+//static char *[UINT_MAX];
 /* provides mutual exclusion for proc_count */
 /* it would be better to use a lock here, but we use a semaphore because locks are not implemented in the base kernel */ 
 static struct semaphore *proc_count_mutex;
+static struct lock *pidLock;
 /* used to signal the kernel menu thread when there are no processes */
 struct semaphore *no_proc_sem;   
+static struct pidEntry *pidList;
+static struct pidEntry *currentPidEntry;
 #endif  // UW
 
+
+struct pidEntry *
+pidEntry_create(int id)
+{
+	struct pidEntry *pidEntry;
+
+	pidEntry = kmalloc(sizeof(*pidEntry));
+	if (pidEntry == NULL) {
+		return NULL;
+	}
+	lock_acquire(pidLock);
+		pidEntry->pid = id;
+		pidEntry->code = 0;
+		pidEntry->next = NULL;
+		if (pidList == NULL) {
+			pidList = pidEntry;
+		}
+		if (currentPidEntry == NULL) {
+			currentPidEntry = pidEntry;
+		}
+		else {
+			currentPidEntry->next = pidEntry;
+		}
+	lock_release(pidLock);
+	return pidEntry;
+}
 
 
 /*
@@ -102,6 +135,14 @@ proc_create(const char *name)
 #ifdef UW
 	proc->console = NULL;
 #endif // UW
+
+#if OPT_A2
+	lock_acquire(pidLock);
+		proc->pid = pidCounter;
+		pidCounter++;
+		
+	lock_release(pidLock);
+#endif
 
 	return proc;
 }
@@ -193,6 +234,13 @@ proc_destroy(struct proc *proc)
 void
 proc_bootstrap(void)
 {
+#if OPT_A2
+  pidLock = lock_create("pidLock");
+  pidCounter = 0;
+  pidList = NULL;
+  currentPidEntry = NULL;
+  if (pidLock == NULL) panic ("could not create pidLock\n");
+#endif
   kproc = proc_create("[kernel]");
   if (kproc == NULL) {
     panic("proc_create for kproc failed\n");
