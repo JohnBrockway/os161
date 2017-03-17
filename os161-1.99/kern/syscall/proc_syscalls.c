@@ -19,7 +19,8 @@ void sys__exit(int exitcode) {
   struct proc *p = curproc;
   /* for now, just include this to keep the compiler from complaining about
      an unused variable */
-  (void)exitcode;
+
+  setPidEntryExit(p->pid, exitcode);
 
   DEBUG(DB_SYSCALL,"Syscall: _exit(%d)\n",exitcode);
 
@@ -55,8 +56,9 @@ sys_getpid(pid_t *retval)
 {
   /* for now, this is just a stub that always returns a PID of 1 */
   /* you need to fix this to make it work properly */
-  *retval = 1;
-  return(0);
+  struct proc *p = curproc;
+  *retval = p->pid;
+  return(p->pid);
 }
 
 /* stub handler for waitpid() system call                */

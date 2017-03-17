@@ -86,23 +86,40 @@ pidEntry_create(int id)
 	if (pidEntry == NULL) {
 		return NULL;
 	}
-	lock_acquire(pidLock);
-		pidEntry->pid = id;
-		pidEntry->code = 0;
-		pidEntry->next = NULL;
-		if (pidList == NULL) {
-			pidList = pidEntry;
-		}
-		if (currentPidEntry == NULL) {
-			currentPidEntry = pidEntry;
-		}
-		else {
-			currentPidEntry->next = pidEntry;
-		}
-	lock_release(pidLock);
+	pidEntry->exited = 0;
+	pidEntry->pid = id;
+	pidEntry->code = 0;
+	pidEntry->next = NULL;
+	if (pidList == NULL) {
+		pidList = pidEntry;
+	}
+	if (currentPidEntry == NULL) {
+		currentPidEntry = pidEntry;
+	}
+	else {
+		currentPidEntry->next = pidEntry;
+		currentPidEntry = pidEntry;
+	}
 	return pidEntry;
 }
 
+void
+setPidEntryExit(int id, int exitCode)
+{
+	struct pidEntry *cur = pidList;
+	while (cur != NULL) {
+		lock_acquire(pidLock);
+			if (cur->pid == id) {
+				cur->exited = 1;
+				cur->code = exitCode;
+			}
+			else {
+				cur = cur->next;
+			}
+		lock_release(pidLock);
+	}
+	panic("Did not find process with matching PID");
+}
 
 /*
  * Create a proc structure.
@@ -140,10 +157,9 @@ proc_create(const char *name)
 	lock_acquire(pidLock);
 		proc->pid = pidCounter;
 		pidCounter++;
-		
+		pidEntry_create(pidCounter - 1);
 	lock_release(pidLock);
 #endif
-
 	return proc;
 }
 

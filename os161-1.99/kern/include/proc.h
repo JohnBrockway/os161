@@ -83,10 +83,12 @@ struct proc {
 struct pidEntry {
 	int pid;
 	int code;
+	int exited;
 	struct pidEntry *next;
 };
 
 struct pidEntry *pidEntry_create(int pid);
+void setPidEntryExit(int id, int exitCode);
 
 /* This is the process structure for the kernel and for kernel-only threads. */
 extern struct proc *kproc;
