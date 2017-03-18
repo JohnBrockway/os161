@@ -112,6 +112,7 @@ setPidEntryExit(int id, int exitCode)
 			if (cur->pid == id) {
 				cur->exited = 1;
 				cur->code = exitCode;
+				return;
 			}
 			else {
 				cur = cur->next;

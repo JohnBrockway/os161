@@ -10,15 +10,11 @@
 #include <addrspace.h>
 #include <copyinout.h>
 
-  /* this implementation of sys__exit does not do anything with the exit code */
-  /* this needs to be fixed to get exit() and waitpid() working properly */
 
 void sys__exit(int exitcode) {
 
   struct addrspace *as;
   struct proc *p = curproc;
-  /* for now, just include this to keep the compiler from complaining about
-     an unused variable */
 
   setPidEntryExit(p->pid, exitcode);
 
@@ -50,15 +46,12 @@ void sys__exit(int exitcode) {
 }
 
 
-/* stub handler for getpid() system call                */
 int
 sys_getpid(pid_t *retval)
 {
-  /* for now, this is just a stub that always returns a PID of 1 */
-  /* you need to fix this to make it work properly */
   struct proc *p = curproc;
   *retval = p->pid;
-  return(p->pid);
+  return(0);
 }
 
 /* stub handler for waitpid() system call                */
@@ -94,3 +87,20 @@ sys_waitpid(pid_t pid,
   return(0);
 }
 
+int sys_fork(struct trapframe *tf) {
+  struct proc *parent = curproc;
+  struct proc *child = proc_create_runprogram("proc");
+  if (child == NULL) {
+    panic("proc_create_runprogram returned NULL during fork");
+  }
+  struct addrspace *newAS = kmalloc(sizeof(struct addrspace));
+  int ret = as_copy(parent->p_addrspace, &newAS);
+  if (ret != 0) {
+    panic("as_copy returned %d during fork", ret);
+  }
+  spinlock_acquire(&child->p_lock);
+    child->p_addrspace = newAS;
+  spinlock_release(&child->p_lock);
+  (void)tf;
+  return(0);
+}
