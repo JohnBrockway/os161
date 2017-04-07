@@ -87,13 +87,13 @@ sys_waitpid(pid_t pid,
   return(0);
 }
 
-int sys_fork(struct trapframe *tf) {
+int sys_fork(struct trapframe *tf) {/*
   struct proc *parent = curproc;
   struct proc *child = proc_create_runprogram("proc");
   if (child == NULL) {
     panic("proc_create_runprogram returned NULL during fork");
   }
-  struct addrspace *newAS = kmalloc(sizeof(struct addrspace));
+  struct addrspace *newAS;
   int ret = as_copy(parent->p_addrspace, &newAS);
   if (ret != 0) {
     panic("as_copy returned %d during fork", ret);
@@ -101,6 +101,7 @@ int sys_fork(struct trapframe *tf) {
   spinlock_acquire(&child->p_lock);
     child->p_addrspace = newAS;
   spinlock_release(&child->p_lock);
+  thread_fork("thread", child, );*/
   (void)tf;
   return(0);
 }
